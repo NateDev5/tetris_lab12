@@ -42,12 +42,12 @@ public class Grid extends JPanel {
         super.paintComponent(g);
 
         if(cellImage == null) {
-            for (int row = 0; row <= rows; row++) {
+            for (int row = 0; row < rows; row++) {
                 int y = row * cellSize;
                 g.drawLine(0, y, getWidth(), y);
             }
 
-            for (int col = 0; col <= cols; col++) {
+            for (int col = 0; col < cols; col++) {
                 int x = col * cellSize;
                 g.drawLine(x, 0, x, getHeight());
             }
@@ -82,6 +82,8 @@ public class Grid extends JPanel {
     }
 
     public boolean willCollide(Point point) {
+        if (point.x < 0 || point.x >= cols || point.y < 0 || point.y >= rows)
+            return true;
         return (cells[point.y][point.x] != null);
     }
 
@@ -129,8 +131,24 @@ public class Grid extends JPanel {
             }
 
             putClientProperty("score", score);
+            putClientProperty("linesCleared", numOfRows);
             onRowFull.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "rowFull"));
         }
+    }
+
+    public boolean isFirstRowUsed () {
+        for (int col = 0; col < cols; col++)
+            if(cells[0][col] != null) return true;
+
+        return false;
+    }
+
+    public void reset () {
+        cells = new GridCell[rows][cols];
+    }
+
+    public int getCols () {
+        return cols;
     }
 }
 

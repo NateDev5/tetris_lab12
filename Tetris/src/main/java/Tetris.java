@@ -6,7 +6,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
 
-public class Tetris extends GameProcess implements KeyListener {
+public class Tetris extends GameProcess implements KeyListener{
     private GameWindow win;
     private Piece currentPiece;
     private Timer pieceTimer;
@@ -17,22 +17,48 @@ public class Tetris extends GameProcess implements KeyListener {
 
     private int score = 0;
 
+    private SidePanel sidePanel;
+
+    private ArrayList<PieceData> nextPieces;
+
+    private int totalLineCleared = 0;
+    private int currentLinesToLevel = 0;
+    private int level = 1;
+
     public Tetris() {
         win = new GameWindow();
-        grid = new Grid(gridSize, win.getSize(), new ActionListener() {
+        win.addKeyListener(this);
+
+        nextPieces = new ArrayList<PieceData>();
+
+        grid = new Grid(gridSize, WindowInfo.gridSize, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                score += (int)((JPanel)e.getSource()).getClientProperty("score");
+                score += (int) ((JPanel) e.getSource()).getClientProperty("score");
+                currentLinesToLevel += (int) ((JPanel) e.getSource()).getClientProperty("linesCleared");
+                totalLineCleared += currentLinesToLevel;
+                sidePanel.setLinesToLevelUp(currentLinesToLevel);
+                sidePanel.setTotalCleared(totalLineCleared);
+                sidePanel.setScore(score);
             }
         });
-        win.add(grid);
-        win.setComponentZOrder(grid, 1);
-        win.addKeyListener(this);
-    }
 
+        sidePanel = new SidePanel(gridSize, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                reset();
+            }
+        });
+
+        win.add(sidePanel, BorderLayout.CENTER);
+
+        grid.setBackground(Color.BLACK);
+        win.add(grid);
+    }
     @Override
     protected void onStart() {
         win.setVisible(true);
+        generateNextPieces();
         addPiece(Pieces.randomPiece());
     }
 
@@ -42,7 +68,14 @@ public class Tetris extends GameProcess implements KeyListener {
 
     @Override
     protected void update() {
+        generateNextPieces();
 
+        if(currentLinesToLevel >= GameSettings.linesToLevelUp) {
+            currentLinesToLevel = 0;
+            level++;
+            sidePanel.setLevel(level);
+            increaseSpeed();
+        }
     }
 
     @Override
@@ -79,6 +112,10 @@ public class Tetris extends GameProcess implements KeyListener {
     }
 
     private void addPiece (PieceData pieceData) {
+        if(grid.isFirstRowUsed()) {
+            reset();
+            return;
+        }
         if(currentPiece != null) {
             win.remove(0);
             for(Point p : currentPiece.getOccupiedCells())
@@ -90,12 +127,14 @@ public class Tetris extends GameProcess implements KeyListener {
         currentPiece = new Piece(pieceData, gridSize, grid, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                addPiece(Pieces.randomPiece());
+                addPiece(nextPieces.removeFirst());
             }
         });
         //currentPiece.enableDebug();
         win.add(currentPiece);
         win.setComponentZOrder(currentPiece, 0);
+        if(pieceData.getTileImage() != null)
+            win.setIconImage(pieceData.getTileImage());
         if(pieceTimer != null && pieceTimer.isRunning()) pieceTimer.stop();
         pieceTimer = new Timer(moveSpeed, new ActionListener() {
             @Override
@@ -107,5 +146,35 @@ public class Tetris extends GameProcess implements KeyListener {
 
         currentPiece.revalidate();
         currentPiece.repaint();
+    }
+
+    private void generateNextPieces () {
+        boolean modified = false;
+        while (nextPieces.size() < 4) {
+            nextPieces.add(Pieces.randomPiece());
+            if(!modified) modified = true;
+        }
+
+        if(modified) sidePanel.setNextPieces(nextPieces);
+    }
+
+    private void reset () {
+        score = 0;
+        totalLineCleared = 0;
+        level = 1;
+        nextPieces = new ArrayList<PieceData>();
+        grid.reset();
+        sidePanel.reset();
+        currentPiece = null;
+        win.remove(0);
+        addPiece(Pieces.randomPiece());
+        sidePanel.repaint();
+        win.revalidate();
+        win.repaint();
+    }
+
+    private void increaseSpeed () {
+        if(moveSpeed > 50)
+            moveSpeed -= GameSettings.speedIncreasePerLevelInMs;
     }
 }

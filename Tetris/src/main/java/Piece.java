@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 public class Piece extends JPanel {
-    private Point position = new Point(0, 0);
+    private Point position;
     private int gridSize;
     private int currentRotIndex = 0;
     private boolean canMove = true;
@@ -23,6 +23,11 @@ public class Piece extends JPanel {
         this.onReachBottom = onReachBottom;
         this.data = data;
         this.grid = grid;
+
+        setOpaque(false);
+        if(data.getShape().length > 1) currentRotIndex = 1;
+
+        position = new Point(((grid.getCols() - 2) / 2) * gridSize, 0);
     }
 
     @Override
@@ -68,15 +73,10 @@ public class Piece extends JPanel {
         debug = true;
     }
 
-    @Override
-    public boolean isOpaque() {
-        return false;
-    }
-
     public void moveDown() {
         if (!canMove) return;
         Point offset = new Point(0, gridSize);
-        if (!willCollide(offset)) {
+        if (!willCollide(offset, currentRotIndex)) {
             position.y += gridSize;
             repaint();
             grid.checkForFullRows();
@@ -86,7 +86,7 @@ public class Piece extends JPanel {
     public void moveLeft() {
         if (!canMove) return;
         Point offset = new Point(-gridSize, 0);
-        if (!willCollide(offset)) {
+        if (!willCollide(offset, currentRotIndex)) {
             position.x -= gridSize;
             repaint();
         }
@@ -95,7 +95,7 @@ public class Piece extends JPanel {
     public void moveRight() {
         if (!canMove) return;
         Point offset = new Point(gridSize, 0);
-        if (!willCollide(offset)) {
+        if (!willCollide(offset, currentRotIndex)) {
             position.x += gridSize;
             repaint();
         }
@@ -103,7 +103,9 @@ public class Piece extends JPanel {
 
     public void rotate() {
         if(!canMove) return;
-        currentRotIndex = (currentRotIndex + 1) % data.getShape().length;
+        Point offset = new Point(0, 0);
+        if(!willCollide(offset, nextRotIndex()))
+            currentRotIndex = nextRotIndex();
         repaint();
     }
 
@@ -137,8 +139,8 @@ public class Piece extends JPanel {
         return data;
     }
 
-    private boolean willCollide(Point offset) {
-        for (Point p : data.getShape()[currentRotIndex]) {
+    private boolean willCollide(Point offset, int rotIndex) {
+        for (Point p : data.getShape()[rotIndex]) {
             int cellX = (p.x * gridSize + position.x + offset.x) / gridSize;
             int cellY = (p.y * gridSize + position.y + offset.y) / gridSize;
 
@@ -155,5 +157,9 @@ public class Piece extends JPanel {
     private void stopMoving () {
         canMove = false;
         onReachBottom.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "reachedBottom"));
+    }
+
+    private int nextRotIndex () {
+       return (currentRotIndex + 1) % data.getShape().length;
     }
 }
