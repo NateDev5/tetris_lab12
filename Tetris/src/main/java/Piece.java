@@ -1,9 +1,11 @@
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.concurrent.Callable;
+import java.util.Objects;
 
 public class Piece extends JPanel {
     private Point position = new Point(0, 0);
@@ -28,7 +30,9 @@ public class Piece extends JPanel {
         super.paintComponent(g);
         g.setColor(data.getColor());
         for(Point p : data.getShape()[currentRotIndex]) {
-            g.fillRect(p.x * gridSize + position.x, p.y * gridSize + position.y, gridSize, gridSize);
+            if(data.getTileImage() == null)
+                g.fillRect(p.x * gridSize + position.x, p.y * gridSize + position.y, gridSize, gridSize);
+            else g.drawImage(data.getTileImage(), p.x * gridSize + position.x, p.y * gridSize + position.y, null);
         }
 
         if(debug) debug(g);

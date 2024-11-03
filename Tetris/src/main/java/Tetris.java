@@ -15,9 +15,16 @@ public class Tetris extends GameProcess implements KeyListener {
     private int gridSize = 40;
     private int moveSpeed = 500; // in ms
 
+    private int score = 0;
+
     public Tetris() {
         win = new GameWindow();
-        grid = new Grid(gridSize, win.getSize());
+        grid = new Grid(gridSize, win.getSize(), new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                score += (int)((JPanel)e.getSource()).getClientProperty("score");
+            }
+        });
         win.add(grid);
         win.setComponentZOrder(grid, 1);
         win.addKeyListener(this);
@@ -35,6 +42,7 @@ public class Tetris extends GameProcess implements KeyListener {
 
     @Override
     protected void update() {
+
     }
 
     @Override
@@ -85,7 +93,7 @@ public class Tetris extends GameProcess implements KeyListener {
                 addPiece(Pieces.randomPiece());
             }
         });
-        currentPiece.enableDebug();
+        //currentPiece.enableDebug();
         win.add(currentPiece);
         win.setComponentZOrder(currentPiece, 0);
         if(pieceTimer != null && pieceTimer.isRunning()) pieceTimer.stop();
