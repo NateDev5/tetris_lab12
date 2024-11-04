@@ -14,7 +14,6 @@ public class SidePanel extends JPanel {
     private int score = 0;
     private int level = 1;
     private int linesToLevelUp = GameSettings.linesToLevelUp;
-    private int totalCleared = 0;
     private ArrayList<PieceData> nextPieces;
     private int gridSize;
     private ActionListener onResetPressed;
@@ -61,7 +60,6 @@ public class SidePanel extends JPanel {
 
         g.setFont(font.deriveFont(17f));
         g.drawString("Next level in: " + linesToLevelUp, 10, 50);
-        g.drawString("Total cleared: " + totalCleared, 10, 70);
 
         if(nextPieces != null && !nextPieces.isEmpty()) {
             for(int i = 0; i < nextPieces.size(); i++)
@@ -106,15 +104,10 @@ public class SidePanel extends JPanel {
         this.linesToLevelUp = GameSettings.linesToLevelUp - linesCleared;
     }
 
-    public void setTotalCleared (int totalCleared) {
-        this.totalCleared = totalCleared;
-    }
-
     public void reset() {
         level = 1;
         score = 0;
         linesToLevelUp = GameSettings.linesToLevelUp;
-        totalCleared = 0;
         repaint();
     }
 }

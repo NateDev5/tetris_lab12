@@ -21,7 +21,6 @@ public class Tetris extends GameProcess implements KeyListener{
 
     private ArrayList<PieceData> nextPieces;
 
-    private int totalLineCleared = 0;
     private int currentLinesToLevel = 0;
     private int level = 1;
 
@@ -36,9 +35,7 @@ public class Tetris extends GameProcess implements KeyListener{
             public void actionPerformed(ActionEvent e) {
                 score += (int) ((JPanel) e.getSource()).getClientProperty("score");
                 currentLinesToLevel += (int) ((JPanel) e.getSource()).getClientProperty("linesCleared");
-                totalLineCleared += currentLinesToLevel;
                 sidePanel.setLinesToLevelUp(currentLinesToLevel);
-                sidePanel.setTotalCleared(totalLineCleared);
                 sidePanel.setScore(score);
             }
         });
@@ -71,9 +68,13 @@ public class Tetris extends GameProcess implements KeyListener{
         generateNextPieces();
 
         if(currentLinesToLevel >= GameSettings.linesToLevelUp) {
-            currentLinesToLevel = 0;
+            if(currentLinesToLevel > GameSettings.linesToLevelUp) {
+                currentLinesToLevel = GameSettings.linesToLevelUp - currentLinesToLevel;
+            }
+            else currentLinesToLevel = 0;
             level++;
             sidePanel.setLevel(level);
+            sidePanel.setLinesToLevelUp(currentLinesToLevel);
             increaseSpeed();
         }
     }
@@ -160,7 +161,6 @@ public class Tetris extends GameProcess implements KeyListener{
 
     private void reset () {
         score = 0;
-        totalLineCleared = 0;
         level = 1;
         nextPieces = new ArrayList<PieceData>();
         grid.reset();
